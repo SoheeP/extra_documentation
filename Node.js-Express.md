@@ -58,9 +58,23 @@ This approach re-uses the single `/users/:user_id` path and adds handlers for va
 
 NOTE: When you use `router.route()`, middleware ordering is based on when the *route* is created, not when method handlers are added to the route. For this purpose, you can consider method handlers to belong to the route to which they were added.
 
-출처: 
+출처: [Express][Express]
 
 [Express]: http://expressjs.com/en/4x/api.html#router.route
 
 
+
+##### [process.cwd()](https://nodejs.org/api/process.html#process_process_cwd)
+
+Added in: v.0.1.8
+
+* Returns: <string>
+
+```js
+<%- include(`${process.cwd()}/views/Common/Base/head.ejs`, {path: 'index',title:"HOME "}) %>
+```
+
+
+
+The `process.cwd()` method returns the current working directory of the Node.js process.
 
