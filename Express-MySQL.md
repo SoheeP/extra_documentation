@@ -69,7 +69,7 @@ exports.query = query;
 
 5. **Unsinged**
 
-   * 숫자형 데이터 중 범위가 음수~양수 까지의 범위를 가지는 데, 음수가 필요하지 않을 때 체크하면 0~양수의 범위로 책정되면서 음수의 범위까지 양수로 넘어간다.
+   * 숫자형 데이터 중 범위가 음수 ~ 양수 까지의 범위를 가지는 데, 음수가 필요하지 않을 때 체크하면 0~양수의 범위로 책정되면서 음수의 범위까지 양수로 넘어간다.
 
    * -2147483648 ~ 2147483647 &rarr; 0 ~ 4294967295
 
@@ -95,6 +95,58 @@ exports.query = query;
 
      &rarr; result: 1, 1, 01, 1, 001, 1, 0001, 1
 
+##### 회원가입 구현
 
+```js
+router.route('/signup')
+.post(async (req, res, next) => {
+  const email  = req.body.email,
+  password     = req.body.password,
+  username     = req.body.username,
+  phone        = req.body.phone,
+  verifyNumber = req.body.verifyNumber;
+  let verify, result;
+
+  /** 
+   * NOTE: result 값 
+   * 1: 가입 완료
+   * 2: 무엇인가의 에러로 인한 실패
+   * 3: 인증 실패
+   * 4: 중복 체크
+   * */ 
+  if(verifyNumber.length === 0){
+    result = { result: 3 };
+    res.json(result)
+  } else {
+    verify = 1;
+    db.query(`select * from showplex.user where email="${email}"`, (err, results) => {
+      if(err) throw err; // error 메세지 반환
+      console.log(results, 'BACK:: Result'); //결과값  출력
+      if(results.length > 0 ){
+        res.json({ result: 4 });
+      } else {
+        // 회원가입
+        db.query(`insert into showplex.user (email, password, username, phone, verifyNumber, verify) values ("${email}", "${password}", "${username}", "${phone}", "${verifyNumber}", "${verify}")`, (error, results) => {
+          if(error){
+            result = { result: 2 };
+            res.json(results);
+            console.log(`Error: 2 : ${error}`);
+          } else {
+            result = { result: 1 };
+            res.json(result);
+            console.log(`Success ! ${results}`);
+          };
+        });
+      };
+    });
+  };
+});
+```
+
+* `db.query` 함수를 쓸 때 들어가는 `querystate`값은  MySQL에서 나오는 쿼리문을 넣으면 된다. 단, insert 되어야 할 값들의 수와 values 값들의 수는 일치해야한다.
+  &rarr; 틀릴 경우 `Error: ER_WRONG_VALUE_COUNT_ON_ROW: Column count doesn't match value count at row 1` 라는 오류 메세지를 보게 될 것이다.
+* 여기에선 `async` 함수만 썼는데, `async` 함수의 반환값은 `promise`객체를 항상 반환한다. 그래서 `async` 함수의 리턴값에서 `then` method를 쓸 수 있음.
+  참고: [자바스크립트-콜백부터-async-await까지-비동기-처리](https://velog.io/@ashnamuh/자바스크립트-콜백부터-async-await까지-비동기-처리)
 
 참조: https://fora.tistory.com/61, 
+
