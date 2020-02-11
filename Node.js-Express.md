@@ -78,3 +78,24 @@ Added in: v.0.1.8
 
 The `process.cwd()` method returns the current working directory of the Node.js process.
 
+##### Express-session
+
+```js
+//app.js
+
+var session = require('express-session');
+
+app.use(session({
+    //config
+    secret: '@#$Signature@!@#',
+    resave: false,
+    saveUninitialized: true
+}))
+
+```
+
+* secret: 쿠키가 임의로 변조하는 것을 방지하기 위한 값. 이 값을 통해 세션을 암호화하여 저장한다.
+* resave : 세션을 언제 저장할 지 정하는 값. `false`를 권장하며 필요하면 `true`로 설정
+* saveUninitialized: 세션이 저장되기 전에 uninitialized 상태로 미리 만들어서 저장
+
+출처: [Velopert.log](https://velopert.com/406)
