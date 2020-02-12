@@ -99,3 +99,28 @@ app.use(session({
 * saveUninitialized: 세션이 저장되기 전에 uninitialized 상태로 미리 만들어서 저장
 
 출처: [Velopert.log](https://velopert.com/406)
+
+
+
+##### res.locals()
+
+요청의 범위가 지정된 **응답 로컬 변수**를 포함하는 객체로, 해당 요청 / 응답주기 동안 **렌더링 된 뷰**에만 사용 가능합니다 (있는 경우). 그렇지 않으면 이 속성은 `app.locals`와 동일합니다. 이 특성은 요청 경로 이름, 인증된 사용자, 사용자 설정 등과 같은 요청 레벨 정보를 노출하는 데 유용합니다.
+
+
+
+```js
+app.use(function (req, res, next) {
+  res.locals.user = req.user
+  res.locals.authenticated = !req.user.anonymous
+  next()
+})
+```
+
+* `app.locals` : 서버가 실행되기 전부터 `app`객체가 존재한다.
+* `res.locals` : 클라이언트의 연결할 때마다 `res` 객체가 생긴다.
+
+
+
+원문: An object that contains response local variables scoped to the request, and therefore available only to the view(s) rendered during that request / response cycle (if any). Otherwise, this property is identical to [app.locals](https://expressjs.com/ko/api.html#app.locals).
+
+This property is useful for exposing request-level information such as the request path name, authenticated user, user settings, and so on.
