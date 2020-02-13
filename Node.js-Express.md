@@ -124,3 +124,47 @@ app.use(function (req, res, next) {
 원문: An object that contains response local variables scoped to the request, and therefore available only to the view(s) rendered during that request / response cycle (if any). Otherwise, this property is identical to [app.locals](https://expressjs.com/ko/api.html#app.locals).
 
 This property is useful for exposing request-level information such as the request path name, authenticated user, user settings, and so on.
+
+
+
+##### Express - async / await
+
+`router` 는 `async` 메소드가 아닌 경우 error가 발생하면 express의 에러 핸들러에서 처리하지만, `async` 키워드를 붙인 `callback` 함수 내의 error 를 감지하지 못한다.
+
+```js
+// Express 에러 핸들러
+app.use('/asycn-function', (req, res) => {
+    throw new Error('사용자 정의 에러 발생')
+})
+
+```
+
+그래서 `async` 키워드가 붙은 `callback` 함수의 error는 아래처럼 `try catch`문을 이용해서 처리해줘야 한다.
+
+```js
+app.use('/async-function', async (req, res, next) => {
+    try{
+        const result = await asyncFunction();
+        throw new Error('Async 사용자 정의 에러 발생');
+        res.json(result);
+    } catch(error) {
+        next(error);
+    };
+});
+```
+
+위처럼 처리할 경우 매번 `async` 키워드에서  작성해줘야 하므로 `wrapper`를 작성해서 처리하는 게 좋다.
+
+```js
+function wrap(asyncFn) {
+    return (async (req, res, next) => {
+      try {
+        return await asyncFn(req, res, next);
+      } catch (error) {
+        return next(error);
+      }
+    }); 
+};
+```
+
+출처: [Express 라우트에서 async await를 사용하려면](https://medium.com/@changjoopark/express-%EB%9D%BC%EC%9A%B0%ED%8A%B8%EC%97%90%EC%84%9C-async-await%EB%A5%BC-%EC%82%AC%EC%9A%A9%ED%95%98%EB%A0%A4%EB%A9%B4-7e8ffe0fcc84), [router 에서 asycn await callback사용하기](https://kjwsx23.tistory.com/199)
