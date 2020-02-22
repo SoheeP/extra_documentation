@@ -168,3 +168,39 @@ function wrap(asyncFn) {
 ```
 
 출처: [Express 라우트에서 async await를 사용하려면](https://medium.com/@changjoopark/express-%EB%9D%BC%EC%9A%B0%ED%8A%B8%EC%97%90%EC%84%9C-async-await%EB%A5%BC-%EC%82%AC%EC%9A%A9%ED%95%98%EB%A0%A4%EB%A9%B4-7e8ffe0fcc84), [router 에서 asycn await callback사용하기](https://kjwsx23.tistory.com/199)
+
+
+
+##### req.method
+
+요청의 HTTP 메소드 (GET, POST, PUT 등)에 해당하는 문자열을 포함합니다.
+
+원문: Contains a string corresponding to the HTTP method of the request: GET, POST, PUT, and so on.
+
+
+
+##### req.originalUrl
+
+이 속성은 `req.url`과 매우 유사합니다. 그러나 원래 요청 URL을 유지하므로 내부 라우팅 목적으로 `req.url`을 자유롭게 다시 작성할 수 있습니다. 예를 들어 `app.use()`의“mounting”기능은 `req.url`을 다시 작성하여 마운트 지점을 제거합니다.
+
+```js
+// GET /search?q=something
+console.dir(req.originalUrl)
+// => '/search?q=something'
+```
+
+미들웨어 함수에서 `req.originalUrl`은 다음 예제와 같이 `req.baseUrl`과 `req.path`의 조합입니다.
+
+```js
+app.use('/admin', function (req, res, next) { // GET 'http://www.example.com/admin/new'
+  console.dir(req.originalUrl) // '/admin/new'
+  console.dir(req.baseUrl) // '/admin'
+  console.dir(req.path) // '/new'
+  next()
+})
+```
+
+
+
+원문: This property is much like `req.url`; however, it retains the original request URL, allowing you to rewrite `req.url` freely for internal routing purposes. For example, the “mounting” feature of [app.use()](https://expressjs.com/ko/api.html#app.use) will rewrite `req.url` to strip the mount point.
+In a middleware function, `req.originalUrl` is a combination of `req.baseUrl` and `req.path`, as shown in the following example.
