@@ -178,6 +178,8 @@ class Welcome extends React.Component {
 * Component의  속성을 사용, 조작할 수 있는 `props` &rarr; 사용자에게 더 중요한 정보(외부적 정보)
 * 사용자들이 알 필요가 없는(!) 정보가 `state` - 내부적 정보
 
+##### app.js
+
 ```jsx
 class App extends Component {
   constructor(props){
@@ -185,15 +187,20 @@ class App extends Component {
     super(props);
     this.state = {
       //초기화 대상
-      subject: { title: 'Web', sub: 'World Wide Web'}
+      subject: { title: 'Web', sub: 'World Wide Web'},
+      contents: [
+        {id: 1, title: 'HTML', desc: 'HTML is for informaition'},
+        {id: 2, title: 'CSS', desc: 'CSS is for design'},
+        {id: 3, title: 'JavaScript', desc: 'JavaScript is for interactive'},
+      ]
     }
   }
   render(){
     return (
       <div className="App">
-      <Subject title={this.state.subject.title} sub="World Wide Web!"></Subject>
+      <Subject title={this.state.subject.title} sub={this.state.subject.sub}></Subject>
       <Subject title="React" sub="For UI"></Subject>
-      <TOC></TOC>
+      <TOC data={this.state.contents}></TOC>
       <Content title="HTML" desc="HTML is HyperText Markup Language."></Content>
     </div>
     );
@@ -202,5 +209,45 @@ class App extends Component {
 ```
 
 * `jsx`에서는 `render()` 할 html 코드 중 `js` 변수를 써서 보이고 싶은 부분은 `{}` 를 사용해서 쓰면 된다.
+* 반복문으로 생성할 경우 
+
+##### TOC.js
+
+```jsx
+class TOC extends Component {
+  render(){
+    let list = [];
+    let data = this.props.data;
+    let i = 0;
+    while(i < data.length){
+      list.push(<li key={data[i].id}><a href={"/content/"+data[i].id}>{data[i].title}</a></li>);
+      i ++;
+    }
+    return(
+      <nav>
+        <ul>
+          {list}
+        </ul>
+      </nav>
+    )
+  }
+}
+
+export default TOC;
+```
+
+* 태그를 반복문으로 생성하다보면, 실제 랜더링 했을때 아래와 같은 에러가 나타난다.
+
+> index.js:1 Warning: Each child in a list should have a unique "key" prop.
+>
+> Check the render method of `TOC`. See https://fb.me/react-warning-keys for more information.
+>     in li (at TOC.js:9)
+>     in TOC (at App.js:26)
+>     in div (at App.js:23)
+>     in App (at src/index.js:7)
+
+이 메시지는 react 내부에서 태그를 구별하기 위한 `key`값이 필요하다고 요구하는 상황이므로 필요한 `key`값을 함께 삽입해주면 아래 에러 메시지는 나타나지 않는다.
+
+
 
 참고자료: 인프런 - 생활코딩, react 공식문서
