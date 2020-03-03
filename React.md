@@ -209,7 +209,6 @@ class App extends Component {
 ```
 
 * `jsx`에서는 `render()` 할 html 코드 중 `js` 변수를 써서 보이고 싶은 부분은 `{}` 를 사용해서 쓰면 된다.
-* 반복문으로 생성할 경우 
 
 ##### TOC.js
 
@@ -247,6 +246,84 @@ export default TOC;
 >     in App (at src/index.js:7)
 
 이 메시지는 react 내부에서 태그를 구별하기 위한 `key`값이 필요하다고 요구하는 상황이므로 필요한 `key`값을 함께 삽입해주면 아래 에러 메시지는 나타나지 않는다.
+
+### event
+
+react에서는 `props`나 `state` 값이 바뀌면 해당되는 컴포넌트의 `render()`가 항상 새로 실행되며, 화면이 새로 그려진다.
+
+```jsx
+class Subject extends Component {
+  render(){
+    return (
+      <header>
+        <h1><a href="/" onClick = {function(){
+          alert('hi');
+        }.bind(this)}>{this.props.title}</a></h1>
+        {this.props.sub}
+      </header>
+    );
+  };
+};
+```
+
+* 이 경우 `a` 태그의 기본 이벤트 동작(click) 때문에 페이지가 새로고침되면서, 페이지가 새로 그려진다.
+  &rarr; `e.preventDefault()` 로 변경
+
+`header`의 링크를 클릭 했을 때, App.js 파일에 있는 `mode` 값을 바꾸고 싶다면 아래 처럼 `this`를 이용해서 쓸 수 있다.
+
+##### App.js 
+
+이해를 돕기 위해, Subject 부분에 `header`를 직접 삽입함)
+
+```jsx
+class App extends Component {
+  constructor(props){
+    //컴포넌트 초기화 시켜주고 싶은 코드를 넣는다
+    super(props);
+    this.state = {
+      mode: 'read',
+      //초기화 대상
+      subject: { title: 'Web', sub: 'World Wide Web'},
+      welcome: { title: 'Welcome', desc: 'Hello, React!!'},
+      contents: [
+        {id: 1, title: 'HTML', desc: 'HTML is for informaition'},
+        {id: 2, title: 'CSS', desc: 'CSS is for design'},
+        {id: 3, title: 'JavaScript', desc: 'JavaScript is for interactive'},
+      ]
+    }
+  }
+  render(){
+    let _title, _desc = null;
+    if(this.state.mode === 'welcome'){
+      _title = this.state.welcome.title;
+      _desc = this.state.welcome.desc;
+    } else if(this.state.mode === 'read') {
+      _title = this.state.contents[0].title;
+      _desc = this.state.contents[0].desc;
+    }
+    return (
+      <div className="App">
+      <Subject title={this.state.subject.title} sub={this.state.subject.sub}></Subject>
+      <header>
+        <h1><a href="/" onClick = {function(e){
+          this.setState({
+            mode: 'welcome'
+          })
+        }.bind(this)}>{this.props.title}</a></h1>
+        {this.props.sub}
+      </header>
+      <TOC data={this.state.contents}></TOC>
+      <Content title={_title} desc={_desc}></Content>
+    </div>
+    );
+  };
+};
+
+```
+
+* 바로 직접 `this`를 쓰면 가리키는 객체가 없어서, `this`값은 `undefined`로 나온다. 그러므로, 함수가 끝날 때 `bind()` 함수를 써서 `Component`를 가리킬 수 있도록 한다.
+* `constructor` 바깥 부분에서 `state`를 동적으로 바꾸고 싶다면 `this.setState`를 이용해서 바꿔야 한다.
+  &rarr; 직접 바꿔버릴 경우(`this.state.mode = 'blah'`) react가 인지할 수 없다.
 
 
 
