@@ -325,6 +325,151 @@ class App extends Component {
 * `constructor` 바깥 부분에서 `state`를 동적으로 바꾸고 싶다면 `this.setState`를 이용해서 바꿔야 한다.
   &rarr; 직접 바꿔버릴 경우(`this.state.mode = 'blah'`) react가 인지할 수 없다.
 
+### 분할된 파일에서 event 를 쓸 때
+
+##### App.js
+
+```jsx
+class App extends Component {
+  constructor(props){
+    //컴포넌트 초기화 시켜주고 싶은 코드를 넣는다
+    super(props);
+    this.state = {
+      mode: 'read',
+      selected_content_id: 2,
+      //초기화 대상
+      subject: { title: 'Web', sub: 'World Wide Web'},
+      welcome: { title: 'Welcome', desc: 'Hello, React!!'},
+      contents: [
+        {id: 1, title: 'HTML', desc: 'HTML is for informaition'},
+        {id: 2, title: 'CSS', desc: 'CSS is for design'},
+        {id: 3, title: 'JavaScript', desc: 'JavaScript is for interactive'},
+      ]
+    }
+  }
+  render(){
+    let _title, _desc = null;
+    if(this.state.mode === 'welcome'){
+      _title = this.state.welcome.title;
+      _desc = this.state.welcome.desc;
+    } else if(this.state.mode === 'read') {
+      var i = 0;
+      while(i < this.state.contents.length){
+        var data = this.state.contents[i]
+        if(data.id === this.state.selected_content_id){
+          _title = data.title;
+          _desc = data.desc;
+          break;
+        }
+        i++;
+      };
+    }
+    return (
+      <div className="App">
+      <Subject title={this.state.subject.title} sub={this.state.subject.sub} onChangePage={function(){
+        this.setState({
+          mode: 'welcome'
+        })
+      }.bind(this)}></Subject>
+      <Subject title="React" sub="For UI"></Subject>
+      <TOC data={this.state.contents} onChangePage={function(id){
+        this.setState({
+          mode: 'read',
+          selected_content_id: +id
+          // Number(id) 로 사용가능
+        })
+      }.bind(this)} ></TOC>
+      <Content title={_title} desc={_desc}></Content>
+    </div>
+    );
+  };
+};
+```
+
+* `props` 값에 함수를 넣어준다.
+
+
+
+##### TOC.js
+
+```jsx
+class TOC extends Component {
+  render(){
+    let list = [];
+    let data = this.props.data;
+    let i = 0;
+    while(i < data.length){
+      list.push(
+      <li key={data[i].id}>
+        <a href={"/content/"+data[i].id} data-id={data[i].id} onClick={function(e){
+          e.preventDefault();
+          this.props.onChangePage(e.target.dataset.id);
+        }.bind(this)}>{data[i].title}</a>
+      </li>
+      /*또는
+      <li key={data[i].id}>
+        <a href={"/content/"+data[i].id} 
+           onClick={function(id, e){
+             e.preventDefault();
+             this.props.onChangePage(id);
+             }.bind(this, data[i].id)}>{data[i].title}
+        </a>
+      </li>
+      */
+    );
+      i ++;
+    }
+    return(
+      <nav>
+        <ul>
+          {list}
+        </ul>
+      </nav>
+    )
+  }
+}
+```
+
+* `props` 값을 이용해 등록된 함수를 불러온다.
+* `bind()` 두번째 인자부터는 연결한 함수의 매개변수로 들어간다.
+
+### create 구현
+
+##### App.js
+
+```jsx
+class App extends Component {
+  ...
+    return (
+      <div className="App">
+      <Subject title={this.state.subject.title} sub={this.state.subject.sub} onChangePage={function(){
+        this.setState({
+          mode: 'welcome'
+        })
+      }.bind(this)}></Subject>
+      <Subject title="React" sub="For UI"></Subject>
+      <TOC data={this.state.contents} onChangePage={function(id){
+        this.setState({
+          mode: 'read',
+          selected_content_id: +id
+        })
+      }.bind(this)} ></TOC>
+      <ul>
+        <li><a href="/create">create</a></li>
+        <li><a href="/update">update</a></li>
+        <li><input type="button" value="button"></input></li>
+      </ul>
+      <Content title={_title} desc={_desc}></Content>
+    </div>
+    );
+  };
+};
+```
+
+* `create`, `update` 는 특정 페이지로 이동해서 내용을 추가/수정할 것이지만, `delete`는 페이지로 가서 변경할 것이 아니기 때문에 버튼으로 사용한다.
+  &rarr; 미리 `delete` 페이지로 가게 되는 프로그램같은게 있다면, 누르지 않았어도 페이지 링크를 타고 진입해서 
+
 
 
 참고자료: 인프런 - 생활코딩, react 공식문서
+
