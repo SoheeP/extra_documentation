@@ -466,8 +466,142 @@ class App extends Component {
 };
 ```
 
-* `create`, `update` 는 특정 페이지로 이동해서 내용을 추가/수정할 것이지만, `delete`는 페이지로 가서 변경할 것이 아니기 때문에 버튼으로 사용한다.
-  &rarr; 미리 `delete` 페이지로 가게 되는 프로그램같은게 있다면, 누르지 않았어도 페이지 링크를 타고 진입해서 
+* `create`, `update` 는 특정 페이지로 이동해서 내용을 추가/수정할 것이지만, `delete`는 버튼으로 사용한다.
+  &rarr; 미리 `delete` 페이지로 가게 되는 프로그램같은게 있다면, 누르지 않았어도 페이지 링크를 타고 진입할 수 있기 때문에 `operator`인 버튼으로 사용한다.
+
+##### CreateContent.js
+
+```jsx
+ <form action="/create_process" method="post"
+        onSubmit={function(e){
+          // 페이지변화가 없는 페이지를 만들려고 하기 때문에, 이벤트를 막음
+          e.preventDefault();
+          this.props.onSubmit(e.target.title.value, e.target.desc.value);
+          alert('submit!')
+        }.bind(this)}>
+```
+
+##### App.js
+
+```jsx
+class App extends Component {
+  constructor(props){
+    //컴포넌트 초기화 시켜주고 싶은 코드를 넣는다
+    super(props);
+    this.max_content_id = 3; // ui의 영향을 주지 않는 변수이므로, state안에 넣지 않는다.
+    this.state = {
+      mode: 'read',
+      selected_content_id: 2,
+      //초기화 대상
+      subject: { title: 'Web', sub: 'World Wide Web'},
+      welcome: { title: 'Welcome', desc: 'Hello, React!!'},
+      contents: [
+        {id: 1, title: 'HTML', desc: 'HTML is for informaition'},
+        {id: 2, title: 'CSS', desc: 'CSS is for design'},
+        {id: 3, title: 'JavaScript', desc: 'JavaScript is for interactive'},
+      ]
+    }
+  }
+render(){
+    let _title, _desc, _article = null;
+    if(this.state.mode === 'welcome'){
+      ...
+    } else if(this.state.mode === 'read') {
+      ...
+      };
+      _article = <ReadContent title={_title} desc={_desc}></ReadContent>;
+    } else if(this.state.mode === 'create'){
+      _article = <CreateContent onSubmit={function(_title, _desc){
+        //add content to this.contents
+        this.max_content_id = this.max_content_id + 1;
+        //직접 수정하면 react가 인지를 못하므로 우선 추가를 해준 뒤
+        this.state.contents.push({id: this.max_content_id, title: _title, desc: _desc})
+        //setState로 변경사실을 추가
+        this.setState({
+          contents: this.state.contents
+        })
+        console.log(_title, _desc)
+      }.bind(this)}></CreateContent>;
+    }
+    return (
+      <div className="App">
+      <Subject title={this.state.subject.title} sub={this.state.subject.sub} onChangePage={function(){
+        this.setState({
+          mode: 'welcome'
+        })
+      }.bind(this)}></Subject>
+      <Subject title="React" sub="For UI"></Subject>
+      <TOC data={this.state.contents} onChangePage={function(id){
+        this.setState({
+          mode: 'read',
+          selected_content_id: +id
+          // Number(id) 로 사용가능
+        })
+      }.bind(this)} ></TOC>
+      <Control onChangeMode={function(_mode){
+        this.setState({
+          mode: _mode
+        })
+      }.bind(this)}></Control>
+      {_article}
+    </div>
+    );
+  };
+};
+...
+```
+
+* 위와 같은  방법으로 직접 `contents`에  `push`하고, `setState`를 불러올 경우 추후 수정할 때 제약에 걸릴 수 있기 때문에 좋지 않은 방법.
+  &rarr; 원본 배열을 수정하지 않는 `concat` 메서드를 사용하는 것을 권장
+
+  ```jsx
+  else if(this.state.mode === 'create'){
+        _article = <CreateContent onSubmit={function(_title, _desc){
+          //add content to this.contents
+          this.max_content_id = this.max_content_id + 1;
+          //직접 수정하면 react가 인지를 못하므로 우선 추가를 해준 뒤
+          let _contents = this.state.contents.concat({id: this.max_content_id, title: _title, desc: _desc})
+          //setState로 변경사실을 추가
+          this.setState({
+            contents: _contents
+          })
+          console.log(_title, _desc)
+        }.bind(this)}></CreateContent>;
+      }
+  ```
+
+
+
+#### 성능이슈 - shouldComponentUpdate 
+
+특정 Component는 수정이 되지 않으면 `render()`할 필요 없는데도 불구하고 계속 렌더링이 될 수 있다(지금 같은 경우는 TOC(목록) Component가 될 것). 이 때, 불필요한 렌더링이 지속되면 성능 이슈가 생길 수 있으며 그때 사용할 수 있는 `shouldComponentUpdate` 메소드가 있다.
+
+이 메소드의 특징은 다음과 같다.
+
+* `shouldComponentUpdate` 는 `render()`이전에 호출된다.
+* `true`값이면 `render()` 호출되며, `false`값을 가지면 `render()` 호출 하지 않는다.
+* 매개변수를 두 가지 갖는다(newProps, newState)
+
+세번째 특징을 통해 `newProps` 값이 있을 때만 `render()` 될 수 있도록 할 수 있다.
+
+##### TOC.js
+
+```jsx
+class TOC extends Component {
+  shouldComponentUpdate(newProps, newState){
+    if(this.props.data === newProps){
+      return false
+    }
+    return true;
+  }
+  render(){
+      ...
+  };
+```
+
+* 이 때, 위처럼 원본배열을 변경하는 `push`를 쓰게 되면 `newProps`와 `this.props.data`가 항상 일치하게 되며 새 값을 비교할 수 없게 된다.
+
+
 
 
 
