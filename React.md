@@ -552,7 +552,7 @@ render(){
 ```
 
 * 위와 같은  방법으로 직접 `contents`에  `push`하고, `setState`를 불러올 경우 추후 수정할 때 제약에 걸릴 수 있기 때문에 좋지 않은 방법.
-  &rarr; 원본 배열을 수정하지 않는 `concat` 메서드를 사용하는 것을 권장
+  &rarr; 원본 배열을 수정하지 않는(불변성, immutable) `concat` 메서드를 사용하는 것을 권장
 
   ```jsx
   else if(this.state.mode === 'create'){
@@ -570,7 +570,7 @@ render(){
       }
   ```
 
-
+* 배열을 복제할때는 `Array.from()`, 객체를 복제할때는 `Object.assign()`을 사용할 수 있다.
 
 #### 성능이슈 - shouldComponentUpdate 
 
@@ -601,7 +601,136 @@ class TOC extends Component {
 
 * 이 때, 위처럼 원본배열을 변경하는 `push`를 쓰게 되면 `newProps`와 `this.props.data`가 항상 일치하게 되며 새 값을 비교할 수 없게 된다.
 
+### Update 구현
 
+##### UpdateContent.js
+
+```jsx
+class UpdateContent extends Component{
+  constructor (props){
+    super(props);
+    this.state = {
+      id: this.props.data.id,
+      title: this.props.data.title,
+      desc: this.props.data.desc,
+    }
+    this.inputFormHandler = this.inputFormHandler.bind(this);
+  }
+
+  inputFormHandler(e){
+    this.setState({
+      [e.target.name]: e.target.value,
+    })
+  }
+
+  render(){
+    return(
+      <article>
+        <h2>Update</h2>
+        <form action="/create_process" method="post"
+        onSubmit={function(e){
+          // 페이지변화가 없는 페이지를 만들려고 하기 때문에, 이벤트를 막음
+          e.preventDefault();
+          this.props.onSubmit(this.state.id, this.state.title, this.state.desc);
+          alert('submit!')
+        }.bind(this)}
+        >
+          {/*contents의 id 식별자 */}
+          <input type="hidden" name="id" value={this.state.id} />
+          <p>
+            <input type="text" 
+            name="title" 
+            placeholder="title" 
+            value = {this.state.title }
+            onChange = {this.inputFormHandler}
+            />
+          </p>
+          <p>
+            {/* 유사 HTML이므로 value에 넣어줘야 한다 */}
+          <textarea name="desc" 
+          placeholder="description" 
+          value={this.state.desc}
+          onChange = {this.inputFormHandler}
+          ></textarea>
+          </p>
+          <p>
+            <input type="submit" />
+          </p>
+        </form>
+      </article>
+    )
+  }
+```
+
+
+
+##### App.js
+
+```jsx
+getContent(){
+    let _title, _desc, _article = null;
+    if(this.state.mode === 'welcome'){
+      ...
+    } else if(this.state.mode === 'read') {
+     ...
+    } else if(this.state.mode === 'create'){
+      ...
+    } else if(this.state.mode === 'update'){
+      let _content = this.getReadContent();
+      _article = <UpdateContent data={_content} onSubmit={
+        function(_id, _title, _desc){
+        let _contents = Array.from(this.state.contents);
+        for(var i = 0 ; i < _contents.length ; i++){
+          if(_contents[i].id === _id){
+            console.log(_id, _title, _desc);
+            _contents[i] = {id: _id, title: _title, desc: _desc};
+            break;
+          }
+        }
+        //setState로 변경사실을 로드
+        this.setState({
+          contents: _contents,
+          mode: 'read',
+        });
+      }.bind(this)}></UpdateContent>;
+    }
+    return _article;
+  }
+```
+
+
+
+### Delete 구현
+
+##### App.js
+
+```jsx
+<Control onChangeMode={function(_mode){
+        if ( _mode === 'delete') {
+          if (window.confirm('Really?')) {
+            let _contents = Array.from(this.state.contents);
+            var i = 0;
+            while (i < _contents.length) {
+              if (_contents[i].id === this.state.selected_content_id) {
+                // i번째부터 1개만 지운다
+                _contents.splice(i, 1);
+                console.log(_contents);
+                break;
+              }
+              i++;
+            }
+            this.setState({
+              mode: 'welcome',
+              contents: _contents
+            })
+          }
+        } else {
+          this.setState({
+            mode: _mode
+          });
+        }
+      }.bind(this)}></Control>
+```
 
 
 
