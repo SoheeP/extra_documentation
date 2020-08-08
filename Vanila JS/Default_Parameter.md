@@ -40,3 +40,6 @@ foo(3) // Arguments [3]
 foo(3, 2) // Arguments [3, 2] 인수가 두개여도 arguments의 length는 1
 ```
 
+
+
+출처: [Poiemaweb](https://poiemaweb.com/es6-extended-parameter-handling)

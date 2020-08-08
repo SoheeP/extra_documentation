@@ -163,5 +163,13 @@ console.log(rest) // [ "Consul", "of the Roman Republic" ]
 
 
 
+### 객체 분할하기
+
+```js
+let { var1, var2 } = { var1: 'value', var2: 'value2'}
+```
+
+할당연산자 우측에 분해하고자 하는 객체를, 좌측엔 상응하는 객체 프로퍼티의 패턴(pattern)을 넣는다.
+
 출처: [모던 javascript 튜토리얼](https://ko.javascript.info/destructuring-assignment), 모던 자바스크립트 입문(책), [Object.entries(MDN)](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Object/entries)
 
