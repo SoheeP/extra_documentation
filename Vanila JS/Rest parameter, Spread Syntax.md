@@ -118,7 +118,7 @@ console.log(sum(1, 2, 3, 4, 5)); // 15
 
 ### Spread Syntax
 
-rest 파라미터처럼 `...`을 사용하지만, Spread 문법은 대상을 개별 요소로 분리한다. Spread 문법의 대상은 이터러블이어야 한다.
+rest 파라미터처럼 `...`을 사용하지만, Spread 문법은 대상을 개별 요소로 분리(확장)한다. Spread 문법의 대상은 이터러블이어야 한다.
 
 ```js
 // ...[1, 2, 3]는 [1, 2, 3]을 개별 요소로 분리한다(→ 1, 2, 3)
@@ -136,7 +136,81 @@ console.log(...{ a: 1, b: 2 });
 // TypeError: Found non-callable @@iterator
 ```
 
+ES6의 Spread문법(`...`)을 사용한 배열을 인수로 함수에 전달하면 배열의 요소를 분해(확장)하여 순차적으로 파라미터에 할당한다.
 
+```js
+// ES5
+function foo(x, y, z) {
+  console.log(x); // 1
+  console.log(y); // 2
+  console.log(z); // 3
+}
+
+// 배열을 분해하여 배열의 각 요소를 파라미터에 전달하려고 한다.
+const arr = [1, 2, 3];
+
+// apply 함수의 2번째 인수(배열)는 분해되어 함수 foo의 파라이터에 전달된다.
+foo.apply(null, arr);
+// foo.call(null, 1, 2, 3); 과 같다. call과 apply의 차이는 인수들을 어떤 형태로 받는가의 차이.
+
+// ES6
+function foo(x, y, z) {
+  console.log(x); // 1
+  console.log(y); // 2
+  console.log(z); // 3
+}
+
+// 배열을 foo 함수의 인자로 전달하려고 한다.
+const arr = [1, 2, 3];
+
+/* ...[1, 2, 3]는 [1, 2, 3]을 개별 요소로 분리한다(→ 1, 2, 3)
+   spread 문법에 의해 분리된 배열의 요소는 개별적인 인자로서 각각의 매개변수에 전달된다. */
+foo(...arr);
+```
+
+Spread 문법을 사용한 인수는 자유롭게 사용할 수 있다.
+
+##### 배열에서 사용하는 경우
+
+```js
+const arr = [1, 2, 3]
+console.log([...arr, 5, 6, 7]) // [1, 2, 3, 5, 6, 7]
+
+const arr2 = [4, 5, 6]
+arr.push(...arr2) // == arr1.push(4,5,6)
+console.log(arr) // [1, 2, 3, 4, 5, 6]
+
+const spliceArr = [1, 2, 3, 6]
+const spliceArr2 = [4, 5]
+spliceArr.splice(3, 0, ...arr2) // == spliceArr.splice(3, 0, 4, 5)
+console.log(spliceArr) // [1, 2, 3, 4, 5, 6]
+```
+
+* `Array.prototype.splice` : 배열의 기존 요소를 삭제 또는 교체 하거나 새 요소를 추가하여 배열의 내용을 변경한다.(원본이 변한다)
+  * `array.splice(start, deleteCount, item ...)` 으로 사용.
+  * `start`: 배열의 변경이 시작할 인덱스. <u>배열의 길이보다 큰 값일 경우</u> 실제 시작 인덱스는 <u>배열의 길이</u>로 설정된다. <u>음수</u>일 경우는 <u>배열의 끝에서부터 요소</u>를 세어 나가고, 값의 절대값이 배열의 길이보다 큰 경우 0 이된다. 
+  * `deleteCount` : 생략하거나, 값이 `array.length - start`보다 크면 `start`부터 모든 요소를 제거. 0이하라면 어떤 요소도 제거하지 않으나, 최소한 하나의 새로운 요소를 지정해야 한다.
+  * `item...` : 배열에 추가할 요소이고, Option이다. 아무요소도 지정하지 않으면 제거하기만 한다.
+  * 제거한 요소를 담은 배열이 반환되고, 제거하지 않았다면 빈 배열을 반환한다.
+
+배열을 복사할 때, Spread 문법을 사용하면 쉽게 복사할 수 있다.
+
+```js
+const arr = [1, 2, 3]
+const copy = [...arr] // [1, 2, 3]
+
+// 이 배열들이 서로 동일한 내용을 가지고 있는가?
+alert(JSON.stringify(arr) === JSON.stringify(arrCopy)); // true
+
+// 이 배열이 완전히 동일한가?
+alert(arr === arrCopy); // false (not same reference)
+
+copy.push(4) 
+console.log(copy) //[1, 2, 3, 4]
+console.log(arr) //[1, 2, 3]
+```
+
+> ❗ Spread 문법과 Object.assign는 원본을 얕은 복사(shallow copy)한다. 
 
 
 
