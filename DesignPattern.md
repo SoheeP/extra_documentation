@@ -28,7 +28,7 @@ public class Settings {
     public int fontSize = 13;
     
     public void setDarkMode (boolean _darkMode){
-        darkMode = _darkMode; // 누군가 이 메서드로 darkMode를 설정하면, 정적 메서드로 getSetting로 설정을 불러올 때 이 darkMode를 반영된 Settings가 적용된다!ㄴ
+        darkMode = _darkMode; // 누군가 이 메서드로 darkMode를 설정하면, 정적 메서드로 getSetting로 설정을 불러올 때 이 darkMode를 반영된 Settings가 적용된다!
     }
     public void setFontSize (int _fontSize){
         fontSize = _fontSize;
@@ -44,4 +44,80 @@ public class Settings {
 
 <b>몇가지 조건검색모드가 있는 검색창을 만든다고 가정해보자.</b> 모드를 선택 후 검색하게 되면 그 모드에 맞게 검색될 수 있는 환경을 구축해야 한다. 즉, 프로그램 실행 중 모드가 바뀔 때 마다 검색이 이루어지는 방식(전략)이 수정된다.
 
-각 모드에 대한 모듈을 만들고, 모듈을 갈아끼우는 방식으로 진행된다
+각 모드에 대한 모듈을 만들고, 모듈을 갈아끼우는 방식으로 진행된다. 그러기 위해서 `interface`를 활용한다.
+
+```java
+package strategy.after;
+
+interface SearchStrategy {
+    public void search(); // search라는 함수가 일을 하는 방식까지 정하진 않고, search를 할 줄 안다만 선언
+}
+
+class SearchStrategyAll implements SearchStrategy {
+    public void search(){
+        System.out.printIn("Search All");
+        // 전체검색하는 코드가 아래에 쭉쭉...
+    }
+}
+class SearchStrategyImage implements SearchStrategy {
+    public void search(){
+        System.out.printIn("Search Image");
+        // 이미지검색하는 코드가 아래에 쭉쭉...
+    }
+}
+class SearchStrategyNews implements SearchStrategy {
+    public void search(){
+        System.out.printIn("Search News");
+        // sbtm검색하는 코드가 아래에 쭉쭉...
+    }
+}
+class SearchStrategyMap implements SearchStrategy {
+    public void search(){
+        System.out.printIn("Search Map");
+        // 지도검색하는 코드가 아래에 쭉쭉...
+    }
+}
+```
+
+새로운 방식이 추가되더라도 클래스 내부에 선언한 메서드를 일일히 추가하고, 수정하기보다는 `SearchStrategy`인터페이스를 구현한 새로운 클래스를 생성하며 사용한다. :arrow_forward: 독립적이고, 상호 교체 가능하게 만들어야 한다!
+
+### 스테이트 패턴 (State Pattern)
+
+겉보기에는 전략패턴과 코드가 상당히 유사하지만, 아래와 같은 차이점이 있다.
+
+* 전략패턴: <u>동일한 틀</u> 안에서 방식(모듈)을 교체해야 할 때 (ex: 검색창이라는 하나의 틀 안에서 모드가 바뀔 때)
+* 스테이트패턴: <u>특정 상태</u>마다 다르게 할 일, 또는 그 상태에서 해야 할 일을 하나하나 모듈이 필요할 때 (ex: TV의 꺼진 상태/켜진 상태에 따라 TV가 해야 할 일이 다를 때)
+
+```java
+package state;
+
+public interface ModeState {
+  public void toggle (ModeSwitch modeSwitch);
+}
+
+class ModeStateLight implements ModeState {
+  public void toggle (ModeSwitch modeSwitch) {
+    System.out.println("FROM LIGHT TO DARK");
+    // 화면을 어둡게 하는 코드
+    // ..
+    // ..
+    modeSwitch.setState(new ModeStateDark()); //상태를 변경해준다.
+  }
+}
+
+class ModeStateDark implements ModeState {
+  public void toggle (ModeSwitch modeSwitch) {
+    System.out.println("FROM DARK TO LIGHT");
+    // 화면을 밝게 하는 코드
+    // ..
+    // ..
+    modeSwitch.setState(new ModeStateLight());
+
+  }
+}
+```
+
+
+
+출처: [얄팍한 코딩사전](https://www.yalco.kr/29_oodp_1/)
+
